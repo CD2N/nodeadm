@@ -1,0 +1,3 @@
+acl setuser default on >Cd2n@cess.net
+acl setuser provider on >cd2n.provider
+acl setuser provider +subscribe
