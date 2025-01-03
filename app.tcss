@@ -1,0 +1,92 @@
+Screen {
+    overflow: auto;
+}
+
+#main-menu-container {
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    align-horizontal: center;
+    align-vertical: middle;
+}
+
+#main-menu-title-container{
+    border-top: dashed #00ee22;
+    border-bottom: dashed #00ee22;
+    height: 30%;
+    width: 100%;
+    align-horizontal: center;
+    align-vertical: middle;
+}
+
+.title {
+    text-style: bold underline;
+    content-align: center middle;
+    width: 20%;
+    grid-size: 50;
+    color:rgb(195, 255, 204);
+    padding-bottom: 1;
+}
+
+#settings-list {
+    column-span: 2;
+    align-horizontal: center;
+    align-vertical: middle;
+}
+
+
+
+Button {
+    margin: 1 0;
+    width: 40%;
+}
+
+#run_compose-container {
+    height: auto;
+    width: 100%;
+    align-horizontal: right;
+    align-vertical: bottom;
+}
+
+
+/* -------------------setting page------------------------*/
+#setting-container {
+    padding: 0;
+    height: 100%;
+    width: 100%;
+}
+
+#setting-title-container {
+    height: 15%;
+    width: 100%;
+    align-horizontal: center;
+    align-vertical: middle;
+}
+
+.setting-title {
+    text-style: bold underline;
+    content-align: center middle;
+    width: 20%;
+    grid-size: 50;
+    color:rgb(101, 155, 15);
+    padding-bottom: 1;
+}
+
+#setting-items-container {
+    height: auto;
+    width: 100%;
+}
+
+#save-cancel-container {
+    width: 100%;
+    align-horizontal: right;
+    align-vertical: bottom;
+}
+
+#save_and_back {
+    width: 50%;
+}
+
+#cancel {
+    width: 50%;
+}
