@@ -134,7 +134,7 @@ def save_config_to_docker_compose(config: dict, path: str = "docker-compose.yml"
             case "chain":
                 services[service_name] = {
                     "image": "cesslab/cess-chain:"+service_config["network"],
-                    "hostname":"cess_chain_host",
+                    "hostname":"cess-chain",
                     "volumes": [
                         service_config["configuration file"] +
                         ":/opt/cess/data"
