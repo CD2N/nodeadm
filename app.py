@@ -119,6 +119,7 @@ def save_config_to_docker_compose(config: dict, path: str = "docker-compose.yml"
                     "image": "cesslab/justicar:latest",
                     "container_name": service_config["name"],
                     "hostname": "justicar_host",
+                    "restart":"always",
                     "devices": [
                         "/dev/sgx_enclave:/dev/sgx_enclave",
                         "/dev/sgx_provision:/dev/sgx_provision",
@@ -138,6 +139,7 @@ def save_config_to_docker_compose(config: dict, path: str = "docker-compose.yml"
             case "chain":
                 services[service_name] = {
                     "image": "cesslab/cess-chain:"+service_config["network"],
+                    "restart":"always",
                     "hostname": "cess-chain",
                     "volumes": [
                         service_config["configuration file"] +
@@ -188,6 +190,7 @@ def save_config_to_docker_compose(config: dict, path: str = "docker-compose.yml"
             case "redis":
                 services[service_name] = {
                     "image": "redis:6.2.16",
+                    "restart":"always",
                     "container_name": service_config["name"],
                     "hostname": "redis_host",
                     "privileged": True,
@@ -207,6 +210,7 @@ def save_config_to_docker_compose(config: dict, path: str = "docker-compose.yml"
             case "ipfs":
                 services[service_name] = {
                     "image": "ipfs/kubo:latest",
+                    "restart":"always",
                     "container_name": service_config["name"],
                     "hostname": "ipfs_host",
                     "ports": [
@@ -228,6 +232,12 @@ def save_config_to_docker_compose(config: dict, path: str = "docker-compose.yml"
             case "retriever":
                 services[service_name] = {
                     "image": "cesslab/retriever:"+service_config["network"],
+                    "restart":"always",
+                    "depends_on":[
+                        "ipfs",
+                        "redis",
+                        "justicar"
+                    ],
                     "container_name": service_config["name"],
                     "hostname": "retriever_host",
                     "ports": [service_config["port"]+":"+service_config["port"]],
