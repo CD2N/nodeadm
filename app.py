@@ -116,7 +116,7 @@ def save_config_to_docker_compose(config: dict, path: str = "docker-compose.yml"
         match service_name:
             case "justicar":
                 services[service_name] = {
-                    "image": "cdn:latest",
+                    "image": "cesslab/justicar:latest",
                     "container_name": service_config["name"],
                     "hostname": "justicar_host",
                     "devices": [
@@ -267,7 +267,7 @@ def copy_config_to_workspace(config: dict):
                             service_config["configuration file"])
             case "retriever":
                 shutil.copy("configs/retriever_config.yaml",
-                            service_config["configuration file"])
+                            os.path.join(service_config["configuration file"],"config.yaml"))
             case _:
                 logging.error(f"[Error] no support service: {service_name}")
 
