@@ -11,8 +11,8 @@ Screen {
 }
 
 #main-menu-title-container{
-    border-top: dashed #00ee22;
-    border-bottom: dashed #00ee22;
+    border-top: dashed rgb(40, 108, 134);
+    border-bottom: dashed rgb(40, 108, 134);
     height: 30%;
     width: 100%;
     align-horizontal: center;
