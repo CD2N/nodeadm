@@ -200,6 +200,8 @@ def save_config_to_docker_compose(config: dict, path: str = "docker-compose.yml"
                         "/redis.conf:/etc/redis/redis.conf",
                         service_config["configuration file"] +
                         "/redis.acl:/etc/redis/redis.acl",
+                        service_config["configuration file"] +
+                        ":/var/lib/redis"
                     ],
                     "command": [
                         "redis-server",
