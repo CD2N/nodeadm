@@ -31,22 +31,22 @@ DEFAULT_CONFIG = {
         "network": "testnet",
         "configuration file": "/opt/cd2n/chain",
     },
-    "redis":{
+    "redis": {
         "name": "redis",
-        "port":"6379",
+        "port": "6379",
         "configuration file": "/opt/cd2n/redis",
-        
+
     },
-    "ipfs":{
+    "ipfs": {
         "name": "ipfs",
-        "port":"4001",
-        "configuration file":"/opt/cd2n/ipfs",
+        "port": "4001",
+        "configuration file": "/opt/cd2n/ipfs",
     },
-    "retriever":{
+    "retriever": {
         "name": "retriever",
         "port": "1306",
         "network": "testnet",
-        "configuration file":"/opt/cd2n/retriever"
+        "configuration file": "/opt/cd2n/retriever"
     }
 }
 
@@ -76,15 +76,16 @@ def load_config_from_docker_compose(path: str = "docker-compose.yml") -> dict:
                 configuration_path = configuration_path[0].split(':')[0]
             logging.debug(f"service_data is : {service_data}")
             match service_name:
-                case "justicar" |"redis" | "ipfs":
-                    if service_name=="redis":
-                        configuration_path=os.path.dirname(configuration_path)
+                case "justicar" | "redis" | "ipfs":
+                    if service_name == "redis":
+                        configuration_path = os.path.dirname(
+                            configuration_path)
                     new_config[service_name] = {
                         "port": ports,
                         "configuration file": configuration_path,
                         "name": service_data.get("container_name", DEFAULT_CONFIG[service_name]["name"]),
                     }
-                case "chain" |"retriever" :
+                case "chain" | "retriever":
                     network = ""
                     if service_data.get("image") is not None:
                         network = service_data.get("image").split(":")[1]
@@ -117,7 +118,7 @@ def save_config_to_docker_compose(config: dict, path: str = "docker-compose.yml"
                 services[service_name] = {
                     "image": "cdn:latest",
                     "container_name": service_config["name"],
-                    "hostname":"justicar_host",
+                    "hostname": "justicar_host",
                     "devices": [
                         "/dev/sgx_enclave:/dev/sgx_enclave",
                         "/dev/sgx_provision:/dev/sgx_provision",
@@ -127,6 +128,9 @@ def save_config_to_docker_compose(config: dict, path: str = "docker-compose.yml"
                         service_config["configuration file"] +
                         ":/opt/justicar/backups"
                     ],
+                    "environment": [
+                        "EXTRA_OPTS=--chain-rpc=\"ws://cess-chain:9944\""
+                    ],
                     "networks": ["cd2n"],
                     "stdin_open": True,
                     "tty": True,
@@ -134,7 +138,7 @@ def save_config_to_docker_compose(config: dict, path: str = "docker-compose.yml"
             case "chain":
                 services[service_name] = {
                     "image": "cesslab/cess-chain:"+service_config["network"],
-                    "hostname":"cess-chain",
+                    "hostname": "cess-chain",
                     "volumes": [
                         service_config["configuration file"] +
                         ":/opt/cess/data"
@@ -166,7 +170,9 @@ def save_config_to_docker_compose(config: dict, path: str = "docker-compose.yml"
                         "--rpc-methods",
                         "unsafe",
                         "--rpc-cors",
-                        "all"
+                        "all",
+                        "--wasm-runtime-overrides",
+                        "/opt/cess/wasms"
                     ],
                     "logging": {
                         "driver": "json-file",
@@ -183,14 +189,16 @@ def save_config_to_docker_compose(config: dict, path: str = "docker-compose.yml"
                 services[service_name] = {
                     "image": "redis:6.2.16",
                     "container_name": service_config["name"],
-                    "hostname":"redis_host",
-                    "privileged":True,
+                    "hostname": "redis_host",
+                    "privileged": True,
                     "ports": [service_config["port"]+":6379"],
                     "volumes": [
-                        service_config["configuration file"] +"/redis.conf:/etc/redis/redis.conf",
-                        service_config["configuration file"] +"/redis.acl:/etc/redis/redis.acl",
+                        service_config["configuration file"] +
+                        "/redis.conf:/etc/redis/redis.conf",
+                        service_config["configuration file"] +
+                        "/redis.acl:/etc/redis/redis.acl",
                     ],
-                    "command":[
+                    "command": [
                         "redis-server",
                         "/etc/redis/redis.conf"
                     ],
@@ -200,18 +208,18 @@ def save_config_to_docker_compose(config: dict, path: str = "docker-compose.yml"
                 services[service_name] = {
                     "image": "ipfs/kubo:latest",
                     "container_name": service_config["name"],
-                    "hostname":"ipfs_host",
+                    "hostname": "ipfs_host",
                     "ports": [
                         service_config["port"]+":4001",
                         service_config["port"]+":4001/udp"
                     ],
-                    "environment":[
+                    "environment": [
                         "IPFS_PATH=/opt/ipfs",
                     ],
                     "volumes": [
-                        service_config["configuration file"] +":/opt/ipfs/",
+                        service_config["configuration file"] + ":/opt/ipfs/",
                     ],
-                    "command":[
+                    "command": [
                         "daemon",
                         "--enable-pubsub-experiment"
                     ],
@@ -221,10 +229,10 @@ def save_config_to_docker_compose(config: dict, path: str = "docker-compose.yml"
                 services[service_name] = {
                     "image": "cesslab/retriever:"+service_config["network"],
                     "container_name": service_config["name"],
-                    "hostname":"retriever_host",
+                    "hostname": "retriever_host",
                     "ports": [service_config["port"]+":"+service_config["port"]],
                     "volumes": [
-                        service_config["configuration file"] +":/opt/cess/",
+                        service_config["configuration file"] + ":/opt/cess/",
                     ],
                     "networks": ["cd2n"],
                 }
@@ -246,18 +254,23 @@ def save_config_to_docker_compose(config: dict, path: str = "docker-compose.yml"
 
     logging.debug(f"docker-compose.yml already save in: {path}")
 
+
 def copy_config_to_workspace(config: dict):
     for service_name, service_config in config.items():
         if not os.path.exists(service_config["configuration file"]):
             os.makedirs(service_config["configuration file"])
         match service_name:
             case "redis":
-                shutil.copy("configs/redis.acl",service_config["configuration file"])
-                shutil.copy("configs/redis.conf",service_config["configuration file"])
+                shutil.copy("configs/redis.acl",
+                            service_config["configuration file"])
+                shutil.copy("configs/redis.conf",
+                            service_config["configuration file"])
             case "retriever":
-                shutil.copy("configs/retriever_config.yaml",service_config["configuration file"])
+                shutil.copy("configs/retriever_config.yaml",
+                            service_config["configuration file"])
             case _:
                 logging.error(f"[Error] no support service: {service_name}")
+
 
 class ConfigScreen(Screen):
     """
@@ -363,8 +376,9 @@ class CD2N(App):
         """
         When the application starts, read the configuration from docker-compose.yml to self.config.
         """
+        self.theme = "gruvbox"
         self.config = load_config_from_docker_compose()
-        #copy_config_to_workspace(self.config)
+        # copy_config_to_workspace(self.config)
 
     def on_ready(self) -> None:
         """
