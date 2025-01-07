@@ -38,8 +38,8 @@ ServerConfig:
   PoolName: ""
   # Whether to run the gateway. If true, the node comes with the gateway function.
   LaunchGateway: true
-  # Debug mode, do not enable it in production environments
-  #Debug: true
+  # Debug mode, do not enable it in production environments!!!
+  Debug: true
   # ipfs node address, default is local node
   IpfsAddress: "http://ipfs_host:5001"
   # Required configuration, default is local node
@@ -50,8 +50,8 @@ ServerConfig:
   Endpoint: "http://cd2n-asia.cess.network"
   # The secret of the redis local account, please reset it and keep it consistent with the redis.conf (requirepass Cd2n@cess.net, line 903).
   # Please configure uniformly in the redis module of nodeadm, and it will be automatically refreshed to the file.
-  RedisPwd: "123456aabb"
+  RedisPwd: "cess_network@6379"
   # Node service port, please keep it consistent with the configuration in the visual script
-  SvcPort: 1306
+  SvcPort: 1307
   # Redis service port, please keep it consistent with the configuration in the visual script
   RedisPort: 6379

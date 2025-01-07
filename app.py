@@ -47,7 +47,7 @@ DEFAULT_CONFIG = {
     },
     "retriever": {
         "name": "retriever",
-        "port": "1307",
+        "port": "1306",
         "network": "testnet",
         "configuration file": "/opt/cd2n/retriever"
     }
