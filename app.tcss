@@ -41,13 +41,20 @@ Button {
     width: 40%;
 }
 
-#run_compose-container {
+#option-container {
     height: auto;
     width: 100%;
-    align-horizontal: right;
+    align-horizontal: left;
     align-vertical: bottom;
 }
 
+#run_compose {
+    width: 50%;
+}
+
+#stop_compose {
+    width: 50%;
+}
 
 /* -------------------setting page------------------------*/
 #setting-container {

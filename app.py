@@ -4,12 +4,13 @@ import os
 import shutil
 import yaml
 import logging
+import subprocess
 from textual.app import App, ComposeResult
 from textual.widgets import Button, Static, Input, Header, Footer, Label
 from textual.screen import Screen
 from textual.containers import Vertical, Horizontal, Container
 from textual.reactive import reactive
-import ast
+from enum import Enum
 
 # debug log
 logging.basicConfig(
@@ -49,6 +50,11 @@ DEFAULT_CONFIG = {
         "configuration file": "/opt/cd2n/retriever"
     }
 }
+
+
+class DockerComposeAction(Enum):
+    RUN = "run"
+    DOWN = "down"
 
 
 def load_config_from_docker_compose(path: str = "docker-compose.yml") -> dict:
@@ -237,7 +243,8 @@ def save_config_to_docker_compose(config: dict, path: str = "docker-compose.yml"
                     "networks": ["cd2n"],
                 }
             case _:
-                logging.error(f"[Error] no support service: {service_name}")
+                logging.error(
+                    f"[Error] save configuration no support service: {service_name}")
 
     docker_compose_data = {
         "version": "3.9",
@@ -267,9 +274,28 @@ def copy_config_to_workspace(config: dict):
                             service_config["configuration file"])
             case "retriever":
                 shutil.copy("configs/retriever_config.yaml",
-                            os.path.join(service_config["configuration file"],"config.yaml"))
+                            os.path.join(service_config["configuration file"], "config.yaml"))
             case _:
                 logging.error(f"[Error] no support service: {service_name}")
+
+
+def operate_docker_compose(action: DockerComposeAction):
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    os.chdir(script_dir)
+
+    if action == DockerComposeAction.RUN:
+        cmd = ["docker-compose", "up", "-d"]
+    elif action == DockerComposeAction.DOWN:
+        cmd = ["docker-compose", "down"]
+    else:
+        raise ValueError(f"unknown docker compose action: {action}")
+
+    try:
+        result = subprocess.run(
+            cmd, capture_output=True, text=True, check=True)
+        logging.info(f"[Info] CD2N running success: {result.stdout}")
+    except subprocess.CalledProcessError as e:
+        raise
 
 
 class ConfigScreen(Screen):
@@ -352,8 +378,9 @@ class MainMenu(Screen):
                 for service_name in self.app.config.keys():
                     yield Button(f"{service_name.capitalize()} Configure", id=f"{service_name}_btn")
 
-            with Container(id="run_compose-container"):
+            with Horizontal(id="option-container"):
                 yield Button("Run CD2N Right Now!", id="run_compose", variant="primary")
+                yield Button("Stop CD2N!", id="stop_compose", variant="error")
 
         yield Footer()
 
@@ -365,7 +392,38 @@ class MainMenu(Screen):
         elif button_id == "run_compose":
             save_config_to_docker_compose(self.app.config)
             copy_config_to_workspace(self.app.config)
+            try:
+                operate_docker_compose(DockerComposeAction.RUN)
+            except subprocess.CalledProcessError as e:
+                self.notify(
+                    f"Can't run CD2N services,Please check log file for more details!",
+                    title="CD2N START FAILED!",
+                    severity="error",
+                )
+                logging.error(f"[Error] START CD2N failed: {e.stderr}")
+                return
+
             logging.debug(f"create docker compose and run")
+            self.notify(
+                "Your CD2N services are now running in docker containers.",
+                title="CD2N NOW STARTING!",
+            )
+        elif button_id == "stop_compose":
+            try:
+                operate_docker_compose(DockerComposeAction.DOWN)
+            except subprocess.CalledProcessError as e:
+                self.notify(
+                    f"Stop CD2N failed,Please check log file for more details!",
+                    title="CD2N STOP FAILED!",
+                    severity="error",
+                )
+                logging.error(f"[Error] STOP CD2N failed: {e.stderr}")
+                return
+            self.notify(
+                "CD2N EXIT RIGHT NOW!",
+                title="CD2N NOW STOP!",
+            )
+            logging.debug(f"stop docker compose")
 
 
 class CD2N(App):
