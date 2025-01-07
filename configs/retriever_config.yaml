@@ -48,8 +48,9 @@ ServerConfig:
   TeeAddress: "http://justicar_host:1309"
   # Retriever node external service address
   Endpoint: "http://cd2n-asia.cess.network"
-  # The secret of the redis local account, please reset it and keep it consistent with the redis.acl (acl setuser default on >Cd2n@cess.net)
-  RedisPwd: "Cd2n@cess.net"
+  # The secret of the redis local account, please reset it and keep it consistent with the redis.conf (requirepass Cd2n@cess.net, line 903).
+  # Please configure uniformly in the redis module of nodeadm, and it will be automatically refreshed to the file.
+  RedisPwd: "123456aabb"
   # Node service port, please keep it consistent with the configuration in the visual script
   SvcPort: 1306
   # Redis service port, please keep it consistent with the configuration in the visual script

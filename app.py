@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 import shutil
 import yaml
 import logging
@@ -34,6 +35,7 @@ DEFAULT_CONFIG = {
     "redis": {
         "name": "redis",
         "port": "6379",
+        "password":"123456aabb",
         "configuration file": "/opt/cd2n/redis",
 
     },
@@ -44,7 +46,7 @@ DEFAULT_CONFIG = {
     },
     "retriever": {
         "name": "retriever",
-        "port": "1306",
+        "port": "1307",
         "network": "testnet",
         "configuration file": "/opt/cd2n/retriever"
     }
@@ -76,10 +78,16 @@ def load_config_from_docker_compose(path: str = "docker-compose.yml") -> dict:
                 configuration_path = configuration_path[0].split(':')[0]
             logging.debug(f"service_data is : {service_data}")
             match service_name:
-                case "justicar" | "redis" | "ipfs":
-                    if service_name == "redis":
-                        configuration_path = os.path.dirname(
+                case "redis":
+                    configuration_path = os.path.dirname(
                             configuration_path)
+                    new_config[service_name] = {
+                        "port": ports,
+                        "configuration file": configuration_path,
+                        "password":DEFAULT_CONFIG[service_name]["password"],
+                        "name": service_data.get("container_name", DEFAULT_CONFIG[service_name]["name"]),
+                    }
+                case "justicar"| "ipfs":  
                     new_config[service_name] = {
                         "port": ports,
                         "configuration file": configuration_path,
@@ -200,8 +208,6 @@ def save_config_to_docker_compose(config: dict, path: str = "docker-compose.yml"
                         "/redis.conf:/etc/redis/redis.conf",
                         service_config["configuration file"] +
                         "/redis.acl:/etc/redis/redis.acl",
-                        service_config["configuration file"] +
-                        ":/var/lib/redis"
                     ],
                     "command": [
                         "redis-server",
@@ -273,16 +279,28 @@ def copy_config_to_workspace(config: dict):
             os.makedirs(service_config["configuration file"])
         match service_name:
             case "redis":
+                replace_in_file("configs/retriever_config.yaml",r'RedisPort: \d*.+',f'RedisPort: {service_config["port"]}')
+                replace_in_file("configs/retriever_config.yaml",r'RedisPwd: \s*.+',f'RedisPwd: "{service_config["password"]}"')
+                replace_in_file("configs/redis.conf",r'requirepass \s*.+',f'requirepass {service_config["password"]}')
                 shutil.copy("configs/redis.acl",
                             service_config["configuration file"])
                 shutil.copy("configs/redis.conf",
                             service_config["configuration file"])
             case "retriever":
+                replace_in_file("configs/retriever_config.yaml",r'SvcPort: \d*.+',f'SvcPort: {service_config["port"]}')
                 shutil.copy("configs/retriever_config.yaml",
                             os.path.join(service_config["configuration file"],"config.yaml"))
             case _:
                 logging.error(f"[Error] no support service: {service_name}")
 
+def replace_in_file(file_path, pattern, replacement):
+    with open(file_path, 'r', encoding='utf-8') as file:
+        content = file.read()
+    
+    new_content = re.sub(pattern, replacement, content)
+    
+    with open(file_path, 'w', encoding='utf-8') as file:
+        file.write(new_content)
 
 class ConfigScreen(Screen):
     """
