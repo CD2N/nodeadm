@@ -1,2 +1,1 @@
-acl setuser provider on >cd2n.provider
-acl setuser provider +subscribe
+user provider +subscribe &* on >cd2n.provider

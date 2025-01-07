@@ -36,7 +36,7 @@ DEFAULT_CONFIG = {
     "redis": {
         "name": "redis",
         "port": "6379",
-        "password":"123456aabb",
+        "password":"cess_network@6379",
         "configuration file": "/opt/cd2n/redis",
 
     },
