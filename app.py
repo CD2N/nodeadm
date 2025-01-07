@@ -32,23 +32,23 @@ DEFAULT_CONFIG = {
         "network": "testnet",
         "configuration file": "/opt/cd2n/chain",
     },
-    # "redis": {
-    #     "name": "redis",
-    #     "port": "6379",
-    #     "configuration file": "/opt/cd2n/redis",
+    "redis": {
+        "name": "redis",
+        "port": "6379",
+        "configuration file": "/opt/cd2n/redis",
 
-    # },
-    # "ipfs": {
-    #     "name": "ipfs",
-    #     "port": "4001",
-    #     "configuration file": "/opt/cd2n/ipfs",
-    # },
-    # "retriever": {
-    #     "name": "retriever",
-    #     "port": "1306",
-    #     "network": "testnet",
-    #     "configuration file": "/opt/cd2n/retriever"
-    # }
+    },
+    "ipfs": {
+        "name": "ipfs",
+        "port": "4001",
+        "configuration file": "/opt/cd2n/ipfs",
+    },
+    "retriever": {
+        "name": "retriever",
+        "port": "1306",
+        "network": "testnet",
+        "configuration file": "/opt/cd2n/retriever"
+    }
 }
 
 
