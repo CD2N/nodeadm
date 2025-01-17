@@ -289,7 +289,9 @@ def copy_config_to_workspace(config: dict):
             case "redis":
                 replace_in_file("configs/retriever_config.yaml",r'RedisPort: \d*.+',f'RedisPort: {service_config["port"]}')
                 replace_in_file("configs/retriever_config.yaml",r'RedisPwd: \s*.+',f'RedisPwd: "{service_config["password"]}"')
+                replace_in_file("configs/retriever_config.yaml",r'RedisLoacl: \s*.+',f'RedisLoacl: "redis_host:{service_config["port"]}"')
                 replace_in_file("configs/redis.conf",r'requirepass \s*.+',f'requirepass {service_config["password"]}')
+                overwrite_acl_file("configs/redis.acl",service_config["password"])
                 shutil.copy("configs/redis.acl",
                             service_config["configuration file"])
                 shutil.copy("configs/redis.conf",
@@ -309,6 +311,14 @@ def replace_in_file(file_path, pattern, replacement):
     
     with open(file_path, 'w', encoding='utf-8') as file:
         file.write(new_content)
+
+def overwrite_acl_file(file_path,redispwd):
+    with open(file_path, 'r') as file:
+        lines = file.readlines()
+    lines[0]=f'user default +@all ~* &* on >{redispwd}\n'
+    lines[1]=f'user retriever +@all ~* &* on >{redispwd}\n'
+    with open(file_path, 'w') as file:
+        file.writelines(lines)
 
 def operate_docker_compose(action: DockerComposeAction):
     script_dir = os.path.dirname(os.path.abspath(__file__))

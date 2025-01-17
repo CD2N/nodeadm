@@ -43,7 +43,7 @@ ServerConfig:
   # ipfs node address, default is local node
   IpfsAddress: "http://ipfs_host:5001"
   # Required configuration, default is local node
-  RedisAddress: "redis_host:6379"
+  RedisAddress: "domain name or external ip:6379"
   # TEE(justicar) service address, currently it must be a local node
   TeeAddress: "http://justicar_host:1309"
   # Retriever node external service address
@@ -52,6 +52,5 @@ ServerConfig:
   # Please configure uniformly in the redis module of nodeadm, and it will be automatically refreshed to the file.
   RedisPwd: "cess_network@6379"
   # Node service port, please keep it consistent with the configuration in the visual script
-  SvcPort: 1307
-  # Redis service port, please keep it consistent with the configuration in the visual script
-  RedisPort: 6379
+  SvcPort: 1306
+  RedisLoacl: "redis_host:6379"
