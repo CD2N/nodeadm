@@ -40,11 +40,6 @@ DEFAULT_CONFIG = {
         "configuration file": "/opt/cd2n/redis",
 
     },
-    "ipfs": {
-        "name": "ipfs",
-        "port": "4001",
-        "configuration file": "/opt/cd2n/ipfs",
-    },
     "retriever": {
         "name": "retriever",
         "port": "1306",
@@ -222,28 +217,6 @@ def save_config_to_docker_compose(config: dict, path: str = "docker-compose.yml"
                     ],
                     "networks": ["cd2n"],
                 }
-            case "ipfs":
-                services[service_name] = {
-                    "image": "ipfs/kubo:latest",
-                    "restart":"always",
-                    "container_name": service_config["name"],
-                    "hostname": "ipfs_host",
-                    "ports": [
-                        service_config["port"]+":4001",
-                        service_config["port"]+":4001/udp"
-                    ],
-                    "environment": [
-                        "IPFS_PATH=/opt/ipfs",
-                    ],
-                    "volumes": [
-                        service_config["configuration file"] + ":/opt/ipfs/",
-                    ],
-                    "command": [
-                        "daemon",
-                        "--enable-pubsub-experiment"
-                    ],
-                    "networks": ["cd2n"],
-                }
             case "retriever":
                 services[service_name] = {
                     "image": "cesslab/retriever:"+service_config["network"],
@@ -260,6 +233,7 @@ def save_config_to_docker_compose(config: dict, path: str = "docker-compose.yml"
                         service_config["configuration file"] + ":/opt/cess/",
                     ],
                     "networks": ["cd2n"],
+                    "depends_on":["redis"]
                 }
             case _:
                 logging.error(
@@ -287,9 +261,11 @@ def copy_config_to_workspace(config: dict):
             os.makedirs(service_config["configuration file"])
         match service_name:
             case "redis":
-                replace_in_file("configs/retriever_config.yaml",r'RedisPort: \d*.+',f'RedisPort: {service_config["port"]}')
-                replace_in_file("configs/retriever_config.yaml",r'RedisPwd: \s*.+',f'RedisPwd: "{service_config["password"]}"')
-                replace_in_file("configs/retriever_config.yaml",r'RedisLoacl: \s*.+',f'RedisLoacl: "redis_host:{service_config["port"]}"')
+                replace_in_file("configs/retriever_config.yaml",
+                    (r'RedisPort: \d*.+',f'RedisPort: {service_config["port"]}'),
+                    (r'RedisPwd: \s*.+',f'RedisPwd: "{service_config["password"]}"'),
+                    (r'RedisLoacl: \s*.+',f'RedisLoacl: "redis_host:{service_config["port"]}"'),
+                )
                 replace_in_file("configs/redis.conf",r'requirepass \s*.+',f'requirepass {service_config["password"]}')
                 overwrite_acl_file("configs/redis.acl",service_config["password"])
                 shutil.copy("configs/redis.acl",
@@ -303,11 +279,11 @@ def copy_config_to_workspace(config: dict):
             case _:
                 logging.error(f"[Error] no support service: {service_name}")
 
-def replace_in_file(file_path, pattern, replacement):
+def replace_in_file(file_path, *prPairs):
     with open(file_path, 'r', encoding='utf-8') as file:
         content = file.read()
-    
-    new_content = re.sub(pattern, replacement, content)
+    for pair in prPairs:
+        new_content = re.sub(pair[0], pair[1], content)
     
     with open(file_path, 'w', encoding='utf-8') as file:
         file.write(new_content)
